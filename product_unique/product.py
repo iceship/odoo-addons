@@ -4,6 +4,8 @@
 #    Ingenieria ADHOC - ADHOC SA
 #    https://launchpad.net/~ingenieria-adhoc
 #
+#    Add (name_temple) by Juil Kim (<http://www.kimjuil.com>)
+#
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
 #    published by the Free Software Foundation, either version 3 of the
@@ -29,7 +31,16 @@ def _check_unique_company_and_default_code(self, cr, uid, ids, context=None):
 			if len(prod_ids) > 1:
 				return False
 		return True
-
+        
+def _check_unique_company_and_name_template(self, cr, uid, ids, context=None):
+    for product in self.browse(cr, uid, ids, context=context):
+        if product.active and product.name_template and product.company_id:
+            filters = [('company_id', '=', product.company_id.id), ('name_template', '=', product.name_template), ('active', '=', True)]
+            prod_ids = self.search(cr, uid, filters, context=context)
+            if len(prod_ids) > 1:
+                return False
+        return True
+    
 def _check_unique_company_and_ean13(self, cr, uid, ids, context=None):
     for product in self.browse(cr, uid, ids, context=context):
 		if product.active and product.ean13 and product.company_id:
@@ -37,7 +48,7 @@ def _check_unique_company_and_ean13(self, cr, uid, ids, context=None):
 			prod_ids = self.search(cr, uid, filters, context=context)
 			if len(prod_ids) > 1:
 				return False
-		return True
+		return True    
 
 class product_product(osv.osv):
 	_name = "product.product"
@@ -48,7 +59,8 @@ class product_product(osv.osv):
 	}
 
 	_constraints = [
-		(_check_unique_company_and_default_code, ('There can not be two active products with the same Reference ode in the same company.'), ['company_id', 'default_code', 'active']),
+		(_check_unique_company_and_default_code, ('There can not be two active products with the same reference code in the same company.'), ['company_id', 'default_code', 'active']),
+        (_check_unique_company_and_name_template, ('There can not be two active products with the same name in the same company.'), ['company_id', 'name_template', 'active']),
 		(_check_unique_company_and_ean13, ('There can not be two active products with the same EAN code in the same company'), ['company_id', 'ean13', 'active'])	
 	]
 
