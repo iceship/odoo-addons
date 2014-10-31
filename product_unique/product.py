@@ -40,6 +40,15 @@ def _check_unique_company_and_name_template(self, cr, uid, ids, context=None):
             if len(prod_ids) > 1:
                 return False
         return True
+
+def _check_unique_company_and_name(self, cr, uid, ids, context=None):
+    for product in self.browse(cr, uid, ids, context=context):
+        if product.active and product.name and product.company_id:
+            filters = [('company_id', '=', product.company_id.id), ('name', '=', product.name), ('active', '=', True)]
+            prod_ids = self.search(cr, uid, filters, context=context)
+            if len(prod_ids) > 1:
+                return False
+        return True
     
 def _check_unique_company_and_ean13(self, cr, uid, ids, context=None):
     for product in self.browse(cr, uid, ids, context=context):
@@ -63,5 +72,14 @@ class product_product(osv.osv):
         (_check_unique_company_and_name_template, ('There can not be two active products with the same name in the same company.'), ['company_id', 'name_template', 'active']),
 		(_check_unique_company_and_ean13, ('There can not be two active products with the same EAN code in the same company'), ['company_id', 'ean13', 'active'])	
 	]
+   
 
-product_product()           
+class product_template(osv.osv):
+    _name = "product.template"
+    _inherit = "product.template"
+
+    _constraints = [
+        (_check_unique_company_and_name, ('There can not be two active products with the same name in the same company.'), ['company_id', 'name', 'active'])
+    ]
+
+  
